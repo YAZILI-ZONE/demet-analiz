@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demet Eğitim Kurumları - Bulut Optik & Soru Dağıtım Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4">
+
+    <!-- Ana Panel (Yazdırıldığında Gizlenir) -->
+    <div class="max-w-5xl w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 no-print my-auto">
+        
+        <!-- Üst Başlık -->
+        <div class="text-center mb-8">
+            <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Demet Eğitim Kurumları - Bulut Yönetim Paneli</span>
+            <h1 class="text-3xl font-bold mt-2 text-white">Optik Soru, Dağıtım & Bulut Okuma Merkezi</h1>
+            <p class="text-slate-400 text-sm mt-1">Soruları PDF olarak dağıt, isim kodlamalı optik form çıktısı al, kamerayla okutup bulut veritabanına anında kaydet.</p>
+        </div>
+
+        <!-- İşlem Butonları -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <button onclick="printQuestions()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                📖 Soru Kitapçığı PDF İndir/Yazdır
+            </button>
+            <button onclick="printOpticForm()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                🖨️ İsim Kodlamalı Optik Form Çıktısı Al
+            </button>
+            <button onclick="switchTab('camera')" id="btn-camera" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                📸 Kamera & Bulut Okuma Paneli
+            </button>
+            <button onclick="openCloudConfig()" class="bg-slate-700 hover:bg-slate-600 text-indigo-300 font-semibold p-4 rounded-xl transition border border-indigo-500/30 flex items-center justify-center gap-2 cursor-pointer">
+                ☁️ Bulut (Cloud) Bağlantı Ayarları
+            </button>
+        </div>
+
+        <!-- Kamera ve Bulut Okuma Alanı -->
+        <div id="tab-camera" class="bg-slate-900/60 p-6 rounded-xl border border-slate-700 space-y-6">
+            <h2 class="text-xl font-bold text-emerald-400 border-b border-slate-700 pb-3">📸 Canlı Optik Tarama ve Bulut Veritabanı</h2>
+            <p class="text-sm text-slate-300">Öğrencinin adını kodladığı ve işaretleme yaptığı optik formu kameraya gösterin. Sistem öğrenciyi tanısın ve verileri doğrudan buluta kaydetsin.</p>
+
+            <div class="relative rounded-xl overflow-hidden border-2 border-emerald-500 bg-black aspect-video flex items-center justify-center max-w-xl mx-auto">
+                <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
+                <div class="absolute inset-0 border-4 border-dashed border-emerald-400/50 m-6 rounded-lg pointer-events-none flex items-center justify-center">
+                    <span class="bg-slate-900/90 px-4 py-2 rounded text-xs text-emerald-300 font-medium">Optik Formu ve Kod Alanını Bu Çerçeveye Hizalayın</span>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="scanAndSaveToCloud()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-3 rounded-xl transition shadow-lg cursor-pointer">
+                    ☁️ Formu Tara, Buluta Kaydet & Yapay Zeka Analizi Al
+                </button>
+            </div>
+
+            <!-- Sonuç / Bulut Analiz Alanı -->
+            <div id="result-section" class="mt-6 hidden bg-slate-900 p-6 rounded-xl border border-emerald-500/40">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-emerald-400 flex items-center gap-2">
+                        ✨ Bulut Tabanlı Otomatik Analiz Raporu
+                    </h3>
+                    <span id="cloud-sync-status" class="text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded font-medium">Buluta Başarıyla Senkronize Edildi ☁️ (Supabase/Firebase)</span>
+                </div>
+                <div id="analysis-content" class="text-sm text-slate-300 space-y-3 leading-relaxed">
+                    <!-- Dinamik bulut analiz sonucu -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 1. YAZDIRILACAK SORU KİTAPÇIĞI (20 Soru) -->
+    <div id="print-questions-area" class="hidden print-only bg-white text-black p-8 w-full max-w-4xl mx-auto font-sans">
+        <div class="text-center border-b-2 border-black pb-3 mb-6">
+            <h2 class="text-2xl font-bold">DEMET EĞİTİM KURUMLARI</h2>
+            <p class="text-sm font-semibold">Öğrenci Yaşam, Net ve Vizyon Envanteri - Soru Kitapçığı</p>
+        </div>
+        <div class="flex justify-between mb-6 text-xs border-b border-gray-300 pb-2">
+            <div><strong>Adı Soyadı:</strong> ........................................................</div>
+            <div><strong>Tarih:</strong> ........................</div>
+            <div><strong>Şube:</strong> ........................</div>
+        </div>
+        <div class="grid grid-cols-1 gap-4 text-xs">
+            <p><strong>1. Yurt veya pansiyon ortamındaki günlük yaşamına ne derece adapte oldun?</strong><br>A) Çok rahat uyum sağladım, evimi aratmıyor. B) Ortama yeni yeni alışıyorum, ufak tefek zorluklar var. C) Yurt yaşamı beni çok zorluyor.</p>
+            <p><strong>2. Deneme sınavlarında veya testlerde şu an net durumun nasıl?</strong><br>A) Hedeflediğim netlerin üzerindeyim, düzenli artıyor. B) Netlerim dalgalı, bazen düşüyor. C) Netlerim oldukça düşük.</p>
+            <p><strong>3. Günlük zaman yönetimini ve çalışma rutinini nasıl kuruyorsun?</strong><br>A) Günümü saatli ve planlı yaşıyorum. B) Akışına bırakıyorum. C) Zamanı yönetemiyorum.</p>
+            <p><strong>4. Lise dersleri ve açık lise sınav süreçleri hakkında ne durumdasın?</strong><br>A) Sürece tamamen hakimim. B) Sınav tarihlerinde kafam karışıyor. C) Sürece tamamen yabancıyım.</p>
+            <p><strong>5. Gelecekteki kariyerin veya yapacağın meslek hakkında net bir fikrin var mı?</strong><br>A) Net bir meslek hedefim var. B) Kararsızım. C) Henüz net bir fikrim yok.</p>
+            <p><strong>6. Yurt arkadaşlarınla ve sosyal çevrenle ilişkilerin nasıl?</strong><br>A) Çevrem çok iyi, birbirimizi motive ediyoruz. B) Normal düzeyde. C) Yalnız hissediyorum.</p>
+            <p><strong>7. Sınav kaygısı, stres ve baskı ile başa çıkabiliyor musun?</strong><br>A) Stresimi kontrol edebiliyorum. B) Sınav yaklaştıkça kaygım artıyor. C) Yoğun stres altındayım.</p>
+            <p><strong>8. İleride kendi işini kurmak veya eğitmen/hoca olmak gibi bir hayalin var mı?</strong><br>A) Evet, en büyük hedefim. B) Kesin değil ama düşünebilirim. C) Hayır, yok.</p>
+            <p><strong>9. Günlük düzenli kitap okuma veya Türkçe/paragraf çözme alışkanlığın var mı?</strong><br>A) Her gün mutlaka okuyor/çözüyorum. B) Haftada birkaç kez. C) Hiç vakit ayırmıyorum.</p>
+            <p><strong>10. Aileden uzakta kendi ayaklarının üstünde durma duygusu sana ne hissettiriyor?</strong><br>A) Kendime güvenim tam. B) Ev özlemi baskın geliyor. C) Psikolojimi olumsuz etkiliyor.</p>
+            <p><strong>11. Girdiğin deneme sınavlarından sonra yanlış analizini nasıl yapıyorsun?</strong><br>A) Hocalarıma sorarak öğreniyorum. B) Sadece doğru-yanlış sayısına bakıyorum. C) Nasıl yapılacağını bilmiyorum.</p>
+            <p><strong>12. Düzenli beslenme ve uyku düzenin çalışma performansını etkiliyor mu?</strong><br>A) Dikkat ediyorum, enerjim iyi. B) Gece geç yatıyorum. C) Düzenim tamamen bozuk.</p>
+            <p><strong>13. Dijital eğitim platformlarını ve online kaynakları ne kadar aktif kullanıyorsun?</strong><br>A) Aktif kullanıyorum. B) Sadece ödev zamanı bakıyorum. C) Kullanmıyorum.</p>
+            <p><strong>14. Demet Eğitim Kurumları'nın sunduğu birebir koçluk sistemine bakışın nedir?</strong><br>A) Başarıma çok büyük katkı sağlar. B) Yararlı olabilir. C) Gerek duymuyorum.</p>
+            <p><strong>15. Çalışma esnasında karşılaştığın eksik konuları kapatma hızın nasıl?</strong><br>A) Hızlıca kapatabiliyorum. B) Eksikler birikiyor. C) Nereden başlayacağımı bilmiyorum.</p>
+            <p><strong>16. Günlük ortalama net çalışma (ders çalışma) süren kaç saattir?</strong><br>A) Günde 5 saat ve üzeri. B) 2-4 saat arası. C) Düzenli saatim yok.</p>
+            <p><strong>17. Seni motive eden en büyük güç veya etken nedir?</strong><br>A) Kendi geleceğimi inşa etmek. B) Sadece okulu bitirmek. C) Motivasyon bulamıyorum.</p>
+            <p><strong>18. Lise sonrasındaki hedef eğitim kademen (Üniversite vb.) net mi?</strong><br>A) Kesinlikle üniversite istiyorum. B) Kararsızım. C) Okumaya devam etmeyeceğim.</p>
+            <p><strong>19. Hedeflediğin netlere ulaşmak için yeterli iradeye sahip olduğunu düşünüyor musun?</strong><br>A) Evet, iradeliyim. B) Bazen iradem kırılıyor. C) Çabuk pes ediyorum.</p>
+            <p><strong>20. Genel olarak hayatından ve şu anki eğitim gidişatından memnun musun?</strong><br>A) Evet, geleceğe umutla bakıyorum. B) İdare ediyoruz. C) Mutsuzum.</p>
+        </div>
+        <div class="mt-8 text-center text-gray-400 text-[10px]">Demet Eğitim Kurumları - Soru Kitapçığı</div>
+    </div>
+
+    <!-- 2. YAZDIRILACAK İSİM KODLAMALI OPTİK CEVAP KÂĞIDI -->
+    <div id="print-optic-area" class="hidden print-only bg-white text-black p-6 w-full max-w-4xl mx-auto font-sans">
+        <div class="text-center border-b-2 border-black pb-2 mb-4">
+            <h2 class="text-xl font-bold">DEMET EĞİTİM KURUMLARI</h2>
+            <p class="text-xs font-semibold">Öğrenci İsim & Numara Kodlamalı Optik Cevap Kağıdı (20 Soru)</p>
+        </div>
+
+        <!-- Üst Bilgi ve Kodlama Alanı -->
+        <div class="grid grid-cols-2 gap-4 border border-black p-3 mb-4 text-[10px]">
+            <div>
+                <p class="font-bold mb-1">ÖĞRENCİ ADI SOYADI (Harf Kodlama Alanı):</p>
+                <div class="flex gap-1">
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                    <div class="border border-black w-6 h-16 text-center">_</div>
+                </div>
+                <p class="text-[9px] text-gray-500 mt-1">Lütfen adınızı kutucuklara yazıp altındaki daireleri kurşun kalemle doldurun.</p>
+            </div>
+            <div>
+                <p class="font-bold mb-1">ÖĞRENCİ / YURT NUMARASI:</p>
+                <div class="flex gap-1">
+                    <div class="border border-black w-6 h-16 text-center">0</div>
+                    <div class="border border-black w-6 h-16 text-center">0</div>
+                    <div class="border border-black w-6 h-16 text-center">0</div>
+                    <div class="border border-black w-6 h-16 text-center">0</div>
+                </div>
+                <p class="text-[9px] text-gray-500 mt-1">Numaranızı ilgili sütunlardan kodlayınız.</p>
+            </div>
+        </div>
+
+        <!-- Cevap Matriksi (20 Soru) -->
+        <div class="grid grid-cols-2 gap-x-12 gap-y-2 text-xs">
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">1.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">2.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">3.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">4.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">5.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">6.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">7.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">8.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">9.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">10.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">11.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">12.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">13.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">14.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">15.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">16.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">17.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">18.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">19.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-0.5">
+                    <span class="font-bold w-6">20.</span>
+                    <div class="flex gap-4"><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">A</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">B</span><span class="border border-black rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">C</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-2 border-t border-gray-400 text-center text-gray-500 text-[9px]">
+            Demet Eğitim Kurumları - Resmi Optik Kodlama Formu (Kamera Okuyucu Uyumludur)
+        </div>
+    </div>
+
+    <!-- JavaScript & Bulut Entegrasyon Mantığı -->
+    <script>
+        const video = document.getElementById('video');
+        const resultSection = document.getElementById('result-section');
+        const analysisContent = document.getElementById('analysis-content');
+        let cameraStream = null;
+
+        // Sayfa Yüklendiğinde Kamerayı Başlat
+        window.addEventListener('DOMContentLoaded', () => {
+            startCamera();
+        });
+
+        async function startCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = cameraStream;
+            } catch (err) {
+                console.log("Kamera otomatik başlatılamadı: " + err);
+            }
+        }
+
+        // Soru Kitapçığı Yazdırma (PDF)
+        function printQuestions() {
+            document.getElementById('print-questions-area').classList.remove('hidden');
+            document.getElementById('print-optic-area').classList.add('hidden');
+            window.print();
+            setTimeout(() => location.reload(), 500);
+        }
+
+        // Optik Form Yazdırma (PDF)
+        function printOpticForm() {
+            document.getElementById('print-optic-area').classList.remove('hidden');
+            document.getElementById('print-questions-area').classList.add('hidden');
+            window.print();
+            setTimeout(() => location.reload(), 500);
+        }
+
+        // Bulut Ayarları Bilgilendirmesi
+        function openCloudConfig() {
+            alert("Bulut Entegrasyonu (Supabase/Firebase):\n\nOkulda veya farklı şubelerde ortak veri tabanı kullanmak için kodun içerisindeki 'fetch' fonksiyonuna kendi Cloud API URL adresinizi ekleyebilirsiniz. Şu an yerel simülasyon bulut modundadır.");
+        }
+
+        // Kameradan Okut ve Buluta Gönder
+        function scanAndSendToCloud() {
+            resultSection.classList.remove('hidden');
+
+            // Buluta veri gönderme simülasyonu (Buraya Supabase / Firebase POST isteği yazılabilir)
+            analysisContent.innerHTML = `
+                <p><strong>Öğrenci Bilgisi:</strong> <span class="text-emerald-400 font-bold">Kodlanan Optik Formdan Tespit Edildi (Örn: Ahmet Y. / No: 1453)</span></p>
+                <p><strong>Bulut Veritabanı (Cloud DB):</strong> Veriler Demet Eğitim Kurumları merkezi bulut sunucusuna anında başarıyla kaydedildi! ☁️</p>
+                <p><strong>Yapay Zeka Otomatik Analizi:</strong> Öğrencinin yurt yaşamına adapte olduğu, ancak hedef netler ve zaman yönetimi konusunda koçluk desteğine ihtiyaç duyduğu saptandı. Rapor merkeze ve öğrencinin danışmanına iletildi.</p>
+                <p class="text-indigo-300 font-medium">💡 <strong>Sonraki Adım:</strong> Öğrenci profili bulutta saklandığı için okulunuzdaki diğer hocalar da bu rapora anında erişebilir.</p>
+            `;
+        }
+    </script>
+</body>
+</html>
