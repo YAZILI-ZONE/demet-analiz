@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demet Eğitim Kurumları - Bulut Optik & Soru Analiz Merkezi</title>
+    <title>Demet Eğitim Kurumları - Kesin Optik Okuyucu & Tam Analiz Sistemi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         .bubble {
             width: 15px;
             height: 15px;
-            border: 1.2px solid #000;
+            border: 1.4px solid #000;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -31,104 +31,142 @@
             font-weight: bold;
             margin: 1px auto;
         }
+        .fiducial {
+            width: 14px;
+            height: 14px;
+            background-color: #000;
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
 
-    <!-- Üst Navigasyon & Burger Menü -->
-    <header class="w-full bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
+    <!-- Üst Navigasyon -->
+    <header class="w-full bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-lg">
         <div class="flex items-center gap-3">
-            <button onclick="toggleSidebar()" class="bg-slate-700 hover:bg-slate-600 text-amber-400 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center border border-slate-600 shadow" title="Öğrenci Arşivi Menüsü">
+            <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center border border-slate-700 shadow" title="Öğrenci Arşivi Menüsü">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
             <div>
-                <span class="text-xs text-indigo-400 font-semibold uppercase tracking-wider">Demet Eğitim Kurumları</span>
-                <h1 class="text-lg font-bold text-white">Bulut Optik & Kişiselleştirilmiş Soru Analiz Paneli</h1>
+                <span class="text-[11px] text-indigo-400 font-bold uppercase tracking-widest">Demet Eğitim Kurumları</span>
+                <h1 class="text-base sm:text-lg font-bold text-white">Kesin Optik Okuyucu & Tam Soru Analiz Merkezi</h1>
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span id="cloud-status" class="text-xs bg-emerald-500/10 text-emerald-300 px-3 py-1 rounded-full border border-emerald-500/30">Bulut Bağlı ☁️</span>
+        <div class="flex items-center gap-3">
+            <span id="cloud-indicator" class="text-xs bg-emerald-500/10 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-500/30 font-medium">Bulut Aktif ☁️</span>
         </div>
     </header>
 
     <div class="flex flex-1 relative overflow-hidden">
         
-        <!-- Sol Kenar Çubuğu (Burger Menü - Öğrenci Listesi) -->
-        <aside id="sidebar" class="w-80 bg-slate-800/95 border-r border-slate-700 flex flex-col transition-all duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0 shadow-2xl">
-            <div class="p-4 border-b border-slate-700 flex items-center justify-between">
-                <h2 class="font-bold text-sm text-indigo-300 flex items-center gap-2">📂 Öğrenci Arşivi & Raporlar</h2>
+        <!-- Sol Kenar Çubuğu (Öğrenci Listesi) -->
+        <aside id="sidebar" class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0 shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="font-bold text-sm text-indigo-300 flex items-center gap-2">📂 Kayıtlı Öğrenciler (<span id="student-count">0</span>)</h2>
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white font-bold">✕</button>
             </div>
-            <div id="student-list-container" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Öğrenci İsimleri Buraya Yüklenir -->
+            <div class="px-4 py-2 bg-slate-950/60 border-b border-slate-800 text-[11px] text-slate-400">
+                Analiz raporunu açmak için öğrenci ismine tıklayın.
             </div>
-            <div class="p-3 border-t border-slate-700 bg-slate-900/50 space-y-2">
-                <button onclick="addNewSampleStudent()" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition cursor-pointer">➕ Örnek Öğrenci Simülasyonu Ekle</button>
-                <button onclick="fetchCloudData()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition cursor-pointer">☁️ Buluttan Güncel Listeyi Çek</button>
+            <div id="student-list-container" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <!-- Öğrenci Kartları -->
+            </div>
+            <div class="p-3 border-t border-slate-800 bg-slate-950/60 space-y-2">
+                <button onclick="fetchCloudData(true)" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold py-2.5 px-3 rounded-lg transition cursor-pointer shadow">☁️ Buluttan Kayıtları Güncelle</button>
             </div>
         </aside>
 
-        <!-- Ana İçerik Alanı -->
-        <main class="flex-1 p-6 overflow-y-auto flex flex-col gap-6 max-w-6xl mx-auto">
+        <!-- Ana Çalışma Alanı -->
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto flex flex-col gap-6 max-w-6xl mx-auto">
             
-            <!-- PDF İndirme ve Kamera Butonları -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Üst Baskı Butonları -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button onclick="generateQuestionsPDF()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm">
-                    📖 Soru Kitapçığı PDF İndir (20 Soru)
+                    📖 20 Soruluk Envanter Kitapçığı PDF İndir
                 </button>
                 <button onclick="generateOpticPDF()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm">
                     🖨️ Ferah Optik Form PDF İndir (Sayfada 2 Adet)
                 </button>
-                <button onclick="startCamera()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold p-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm">
-                    📸 Kamerayı Aç / Yenile
-                </button>
             </div>
 
-            <!-- Tarama ve Kişiselleştirilmiş Rapor Ekranı -->
+            <!-- Tarama ve Analiz Alanı -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                <!-- Sol Kolon: Dikey Kamera Okuyucu (5 birim) -->
-                <div class="lg:col-span-5 bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-4 flex flex-col">
-                    <h2 class="text-base font-bold text-emerald-400 flex items-center gap-2">📸 Dikey Optik Form Tarayıcı</h2>
-                    <p class="text-xs text-slate-300">Optik formu dikey çerçeveye hizalayıp öğrenci bilgilerini doğrulayarak taratın.</p>
+                <!-- Sol Kolon: Kesin Optik Form Tarayıcı -->
+                <div class="lg:col-span-5 bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-emerald-400 flex items-center gap-2">📸 Kesin Optik Okuyucu</h2>
+                        <button onclick="startCamera()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer">Kamerayı Yenile</button>
+                    </div>
+                    <p class="text-xs text-slate-400">Yalnızca 4 köşesinde siyah hizalama karesi bulunan Demet Eğitim Optik Formu kabul edilir.</p>
                     
-                    <div class="relative rounded-xl overflow-hidden border-2 border-emerald-500 bg-black flex-1 min-h-[260px] flex items-center justify-center">
+                    <div class="relative rounded-xl overflow-hidden border-2 border-emerald-500/80 bg-black flex-1 min-h-[280px] flex items-center justify-center">
                         <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
                         <canvas id="capture-canvas" class="hidden"></canvas>
-                        <div class="absolute inset-x-8 inset-y-4 border-2 border-dashed border-emerald-400/70 rounded-lg pointer-events-none flex flex-col justify-between p-2">
-                            <span class="bg-slate-900/90 px-2 py-0.5 rounded text-[10px] text-emerald-300 font-medium text-center self-center">İsim & Numara Kutusu</span>
-                            <span class="bg-slate-900/90 px-2 py-0.5 rounded text-[10px] text-emerald-300 font-medium text-center self-center">1-20 Cevap Alanı</span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <input type="text" id="scan-name" placeholder="Öğrenci Adı Soyadı" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
-                        <input type="text" id="scan-no" placeholder="Öğrenci Numarası (4 Hane)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
-                        <button onclick="processAndSaveScan()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg cursor-pointer text-sm">
-                            ✨ Formu Tara & 20 Soruluk Analizi Oluştur
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Sağ Kolon: Öğrenciye Özel 20 Soruluk Tam Analiz Paneli (7 birim) -->
-                <div class="lg:col-span-7 bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between shadow-lg">
-                    <div>
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3 mb-4">
-                            <h2 class="text-base font-bold text-amber-400 flex items-center gap-2">📊 Öğrenciye Özel Soru Soru Analiz Raporu</h2>
-                            <span id="active-student-badge" class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full font-semibold">Seçili Öğrenci Yok</span>
-                        </div>
                         
-                        <div id="report-content" class="text-xs text-slate-300 space-y-3 leading-relaxed">
-                            <div class="text-center py-20 text-slate-500">
-                                Sol menüdeki burger ikonuna basıp bir öğrenci ismine tıklayarak tüm 20 sorunun detaylı analizini görüntüleyin.
+                        <!-- Optik Form Hizalama Rehberi -->
+                        <div class="absolute inset-x-7 inset-y-4 border-2 border-dashed border-emerald-400 rounded-lg pointer-events-none flex flex-col justify-between p-2">
+                            <div class="flex justify-between w-full">
+                                <span class="w-3.5 h-3.5 border-t-2 border-l-2 border-emerald-400"></span>
+                                <span class="bg-slate-950/90 px-2 py-0.5 rounded text-[10px] text-emerald-300 font-semibold">ÜST KÖŞE KARELERİNİ HİZALA</span>
+                                <span class="w-3.5 h-3.5 border-t-2 border-r-2 border-emerald-400"></span>
+                            </div>
+                            <div class="text-center">
+                                <span class="bg-slate-950/85 px-2.5 py-1 rounded text-[10px] text-slate-200 border border-slate-700">1 - 20 Cevap Baloncukları Alanı</span>
+                            </div>
+                            <div class="flex justify-between w-full">
+                                <span class="w-3.5 h-3.5 border-b-2 border-l-2 border-emerald-400"></span>
+                                <span class="bg-slate-950/90 px-2 py-0.5 rounded text-[10px] text-emerald-300 font-semibold">ALT KÖŞE KARELERİNİ HİZALA</span>
+                                <span class="w-3.5 h-3.5 border-b-2 border-r-2 border-emerald-400"></span>
                             </div>
                         </div>
                     </div>
 
-                    <div id="scanned-image-box" class="mt-4 hidden pt-3 border-t border-slate-700">
-                        <p class="text-[10px] text-slate-400 mb-1">Taranan Optik Form Kayıt Görüntüsü:</p>
-                        <img id="report-img" class="h-24 rounded border border-slate-700 object-contain bg-black w-full" alt="Form Görüntüsü">
+                    <div id="scan-feedback" class="hidden text-xs p-2.5 rounded-lg border"></div>
+
+                    <div class="space-y-2.5 pt-1">
+                        <input type="text" id="scan-name" placeholder="Öğrenci Adı Soyadı (Zorunlu)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
+                        <input type="text" id="scan-no" placeholder="Öğrenci Numarası (Örn: 1453)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
+                        <button onclick="processAndSaveScan()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg cursor-pointer text-sm flex items-center justify-center gap-2">
+                            <span>🔍 Optik Formu Doğrula & Kaydet</span>
+                        </button>
                     </div>
+                </div>
+
+                <!-- Sağ Kolon: Yalnızca Öğrenciye Tıklanınca Açılan Tam Analiz Raporu -->
+                <div class="lg:col-span-7 bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between shadow-xl">
+                    
+                    <!-- Kapalı Durum Ekranı (Öğrenci Seçilmediğinde Görünür) -->
+                    <div id="empty-report-state" class="flex-1 flex flex-col items-center justify-center text-center py-20 px-4">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl mb-3">🔒</div>
+                        <h3 class="text-sm font-bold text-slate-200">Analiz Paneli Beklemede</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mt-1.5 leading-relaxed">
+                            Herhangi bir öğrencinin 20 soruluk derinlemesine analizini ve koçluk yorumlarını görüntülemek için sol menüdeki <strong class="text-indigo-400">öğrenci ismine tıklayın</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Açık Durum Ekranı (Sadece Öğrenciye Tıklanınca Açılır) -->
+                    <div id="active-report-wrapper" class="hidden flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+                                <div>
+                                    <h2 class="text-base font-bold text-amber-400 flex items-center gap-2">📊 Tam Soru Bazlı Analiz & Koçluk</h2>
+                                    <p id="active-student-subtitle" class="text-[11px] text-slate-400 mt-0.5"></p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="exportStudentReportPDF()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer transition shadow">📄 Raporu PDF İndir</button>
+                                    <button onclick="closeReportPanel()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 cursor-pointer" title="Raporu Kapat">✕ Kapat</button>
+                                </div>
+                            </div>
+                            
+                            <div id="report-content" class="text-xs text-slate-300 space-y-3 leading-relaxed"></div>
+                        </div>
+
+                        <div id="scanned-image-box" class="mt-4 hidden pt-3 border-t border-slate-800">
+                            <p class="text-[10px] text-slate-400 mb-1">Taranan Optik Form Kayıt Görüntüsü:</p>
+                            <img id="report-img" class="h-24 rounded border border-slate-700 object-contain bg-black w-full" alt="Form Görüntüsü">
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -140,11 +178,10 @@
     <!-- ===================================================================== -->
     <div style="position: fixed; left: -9999px; top: 0;">
         
-        <!-- 1. Soru Kitapçığı PDF Şablonu -->
         <div id="pdf-questions-template" class="bg-white text-black p-8 w-[790px] font-sans">
             <div class="text-center border-b-2 border-black pb-3 mb-4">
                 <h2 class="text-xl font-bold">DEMET EĞİTİM KURUMLARI</h2>
-                <p class="text-xs font-semibold text-gray-700 mt-1">ÖĞRENCİ YAŞAM, NET VE VİZYON ENVANTERİ - SORU KİTAPÇIĞI</p>
+                <p class="text-xs font-semibold text-gray-700 mt-1">ÖĞRENCİ YURT YAŞAMI, NET VE VİZYON ENVANTERİ - SORU KİTAPÇIĞI</p>
             </div>
             <div class="flex justify-between mb-4 text-xs border border-gray-400 p-2 bg-gray-50">
                 <div><strong>Adı Soyadı:</strong> ....................................................</div>
@@ -152,23 +189,22 @@
                 <div><strong>Tarih:</strong> .... / .... / 2026</div>
             </div>
             <div id="pdf-questions-list" class="space-y-3 text-[11px] leading-snug"></div>
+            <div class="mt-4 pt-2 border-t border-gray-300 text-right text-[9px] text-gray-500">Hazırlayan: Seyit Talha Sarı</div>
         </div>
 
-        <!-- 2. Ferah ve Kompakt Optik Form PDF Şablonu (1 Sayfada 2 Adet Alt Alta) -->
-        <div id="pdf-optic-template" class="bg-white text-black p-4 w-[790px] font-sans space-y-4">
-            <!-- JS ile 2 adet özdeş ferah optik form alt alta basılacak -->
-        </div>
+        <div id="pdf-optic-template" class="bg-white text-black p-4 w-[790px] font-sans space-y-4"></div>
+
+        <div id="pdf-student-report-template" class="bg-white text-black p-8 w-[790px] font-sans"></div>
 
     </div>
 
     <!-- ===================================================================== -->
-    <!-- JAVASCRIPT & KİŞİSELLEŞTİRİLMİŞ ANALİZ MOTORU                         -->
+    <!-- JAVASCRIPT & KESİN OPTİK DOĞRULAMA + TAM YORUM MOTORU                 -->
     <!-- ===================================================================== -->
     <script>
         const BIN_ID = "6af60a22ffd5d16053bcebbb";
         const MASTER_KEY = "$2a$10$c4WLovNHe6BMLuQ5vFOLYu7BVBme0YpaaDiz7/1eEU5zqpKOUepKK";
 
-        // 20 Soru ve Her Şıkka Özel Derinlemesine Rehberlik/Koçluk Analiz Havuzu
         const questionsData = [
             {
                 id: 1,
@@ -372,40 +408,17 @@
             }
         ];
 
-        // Varsayılan Örnek Öğrenciler (Her birinin kendine özgü cevap dizisi vardır)
-        let studentsList = [
-            {
-                id: "std_1",
-                name: "Seyit Talha Sarı",
-                no: "1453",
-                date: "13.06.2026 - 09:30",
-                answers: ["A", "A", "A", "A", "A", "A", "B", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "A"],
-                img: ""
-            },
-            {
-                id: "std_2",
-                name: "Ahmet Yılmaz",
-                no: "1024",
-                date: "13.06.2026 - 10:15",
-                answers: ["B", "B", "C", "B", "B", "A", "C", "B", "C", "B", "B", "B", "B", "A", "B", "B", "A", "A", "B", "B"],
-                img: ""
-            }
-        ];
-
+        let studentsList = [];
         let activeStudentId = null;
         let cameraStream = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             renderPDFTemplates();
-            renderStudentList();
             startCamera();
-            fetchCloudData();
-            if(studentsList.length > 0) selectStudent(studentsList[0].id);
+            fetchCloudData(false);
         });
 
-        // PDF Şablonlarını Oluştur
         function renderPDFTemplates() {
-            // 1. Soru Kitapçığı
             const qContainer = document.getElementById('pdf-questions-list');
             qContainer.innerHTML = questionsData.map(item => `
                 <div class="pb-2 border-b border-gray-200" style="page-break-inside: avoid;">
@@ -416,22 +429,19 @@
                 </div>
             `).join('');
 
-            // 2. Ferah ve Kompakt Optik Form (1 A4 Sayfasında 2 Adet Alt Alta)
             const singleOpticHTML = (formIndex) => {
-                // 4 Haneli Numara Kodlama Matrisi
                 const numGridHTML = Array(4).fill(0).map(() => `
-                    <div class="border border-gray-500 bg-white">
+                    <div class="border border-gray-600 bg-white">
                         <div class="h-4 border-b border-black bg-gray-100"></div>
                         <div class="py-0.5">${Array(10).fill(0).map((_,d) => `<div class="num-bubble">${d}</div>`).join('')}</div>
                     </div>
                 `).join('');
 
-                // 20 Soruluk Cevap Alanı (2 Sütun: 1-10 ve 11-20)
                 let col1HTML = "";
                 let col2HTML = "";
                 for(let i=1; i<=20; i++) {
                     const row = `
-                        <div class="flex items-center justify-between border-b border-gray-200 py-0.5 px-2">
+                        <div class="flex items-center justify-between border-b border-gray-300 py-0.5 px-2">
                             <span class="font-bold text-[9px] w-5">${i}.</span>
                             <div class="flex gap-3">
                                 <span class="bubble">A</span>
@@ -445,17 +455,22 @@
                 }
 
                 return `
-                    <div class="border-2 border-black p-3 bg-white">
-                        <div class="flex justify-between items-center border-b border-black pb-1.5 mb-2">
-                            <span class="font-bold text-xs">DEMET EĞİTİM KURUMLARI - OPTİK CEVAP FORMU</span>
-                            <span class="text-[9px] font-semibold bg-gray-100 px-2 py-0.5 border border-gray-400">Form #${formIndex}</span>
+                    <div class="border-2 border-black p-3 bg-white relative">
+                        <div class="flex justify-between items-center border-b-2 border-black pb-1.5 mb-2">
+                            <div class="flex items-center gap-2">
+                                <div class="fiducial"></div>
+                                <span class="font-bold text-xs">DEMET EĞİTİM KURUMLARI - OPTİK CEVAP FORMU</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-semibold bg-gray-100 px-2 py-0.5 border border-gray-400">Form #${formIndex}</span>
+                                <div class="fiducial"></div>
+                            </div>
                         </div>
                         
                         <div class="grid grid-cols-12 gap-3 mb-2">
-                            <!-- Sol: Ferah İsim ve Bilgi Alanı -->
-                            <div class="col-span-8 border border-gray-400 p-2 flex flex-col justify-between bg-gray-50/40">
+                            <div class="col-span-8 border border-gray-500 p-2 flex flex-col justify-between bg-gray-50/30">
                                 <div>
-                                    <p class="text-[9px] font-bold text-gray-700 mb-1">ÖĞRENCİ ADI SOYADI (Büyük Harflerle Yazınız):</p>
+                                    <p class="text-[9px] font-bold text-gray-800 mb-1">ÖĞRENCİ ADI SOYADI (Büyük Harflerle Yazınız):</p>
                                     <div class="grid grid-cols-14 gap-0.5">
                                         ${Array(14).fill('<div class="h-6 border border-black bg-white"></div>').join('')}
                                     </div>
@@ -466,25 +481,26 @@
                                 </div>
                                 <div class="mt-1.5 flex justify-between items-center text-[9px]">
                                     <div><strong>Öğrenci İmza:</strong> .........................</div>
-                                    <div class="text-[8px] text-gray-500 italic">Kurşun kalemle tam karalayınız.</div>
+                                    <div class="text-[8px] text-gray-600 italic">Baloncukları taşmadan tam karalayınız.</div>
                                 </div>
                             </div>
-
-                            <!-- Sağ: Kompakt 4 Haneli Numara Kodlama Alanı -->
-                            <div class="col-span-4 border border-gray-400 p-2 bg-gray-50/40">
+                            <div class="col-span-4 border border-gray-500 p-2 bg-gray-50/30">
                                 <p class="text-[9px] font-bold text-center mb-1">ÖĞRENCİ NO KODLA</p>
-                                <div class="grid grid-cols-4 gap-1 text-center">
-                                    ${numGridHTML}
-                                </div>
+                                <div class="grid grid-cols-4 gap-1 text-center">${numGridHTML}</div>
                             </div>
                         </div>
 
-                        <!-- Alt: 20 Soruluk Cevap Matriksi -->
-                        <div class="border border-black p-1.5">
+                        <div class="border-2 border-black p-1.5">
                             <div class="grid grid-cols-2 gap-6">
                                 <div>${col1HTML}</div>
                                 <div>${col2HTML}</div>
                             </div>
+                        </div>
+
+                        <div class="flex justify-between items-center mt-1.5 pt-1">
+                            <div class="fiducial"></div>
+                            <span class="text-[8px] text-gray-500">Optik Okuyucu Hizalama Sınırı - Demet Eğitim Kurumları (Hazırlayan: Seyit Talha Sarı)</span>
+                            <div class="fiducial"></div>
                         </div>
                     </div>
                 `;
@@ -501,39 +517,50 @@
             document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
-        // Öğrenci Listesini Burger Menüye Bas
         function renderStudentList() {
             const container = document.getElementById('student-list-container');
+            document.getElementById('student-count').textContent = studentsList.length;
+
             if(studentsList.length === 0) {
-                container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">Kayıt bulunamadı.</div>`;
+                container.innerHTML = `<div class="text-center text-xs text-slate-500 py-8 px-3">Henüz taranmış optik form yok.</div>`;
                 return;
             }
             container.innerHTML = studentsList.map(std => {
-                // Öğrencinin A şıkkı (ideal uyum) oranını hesapla
-                const ansList = std.answers || Array(20).fill("A");
+                const ansList = std.answers || [];
                 const aCount = ansList.filter(a => a === "A").length;
-                const scorePct = Math.round((aCount / 20) * 100);
+                const scorePct = ansList.length ? Math.round((aCount / 20) * 100) : 0;
 
                 return `
-                    <div onclick="selectStudent('${std.id}')" class="p-3 rounded-xl cursor-pointer transition border ${activeStudentId === std.id ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-md' : 'bg-slate-900/50 border-slate-700 hover:bg-slate-700/50 text-slate-300'} flex items-center justify-between">
+                    <div onclick="selectStudent('${std.id}')" class="p-3 rounded-xl cursor-pointer transition border ${activeStudentId === std.id ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-md' : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800 text-slate-300'} flex items-center justify-between">
                         <div>
                             <p class="font-bold text-xs">${std.name}</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">No: ${std.no} | Uyum Oranı: <span class="text-emerald-400 font-semibold">%${scorePct}</span></p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">No: ${std.no} | Uyum: <span class="text-emerald-400 font-semibold">%${scorePct}</span></p>
+                            <p class="text-[9px] text-slate-500">${std.date}</p>
                         </div>
-                        <span class="text-xs text-indigo-400 font-bold">➔</span>
+                        <span class="text-xs text-indigo-400 font-bold">Analizi Aç ➔</span>
                     </div>
                 `;
             }).join('');
         }
 
-        // Öğrenciye Tıklandığında O Öğrencinin Cevaplarına Özel 20 Soruluk Tam Analiz Üret
+        // Rapor Panelini Kapat
+        function closeReportPanel() {
+            activeStudentId = null;
+            renderStudentList();
+            document.getElementById('active-report-wrapper').classList.add('hidden');
+            document.getElementById('empty-report-state').classList.remove('hidden');
+        }
+
+        // Sadece Öğrenci İsmine Tıklandığında 20 Soruluk Tam Analizi Aç
         function selectStudent(id) {
             activeStudentId = id;
             renderStudentList();
             const std = studentsList.find(s => s.id === id);
             if(!std) return;
 
-            document.getElementById('active-student-badge').textContent = `${std.name} (No: ${std.no})`;
+            document.getElementById('empty-report-state').classList.add('hidden');
+            document.getElementById('active-report-wrapper').classList.remove('hidden');
+            document.getElementById('active-student-subtitle').textContent = `${std.name} (No: ${std.no}) • Tarama: ${std.date}`;
             
             const reportBox = document.getElementById('report-content');
             const imgBox = document.getElementById('scanned-image-box');
@@ -549,19 +576,15 @@
             const ansList = std.answers || Array(20).fill("A");
             let countA = 0, countB = 0, countC = 0;
 
-            // 20 Sorunun Tamamını Öğrencinin Şıkkına Göre Tek Tek Analiz Et
             const detailedQuestionsHTML = questionsData.map((qItem, index) => {
                 const chosenLetter = ansList[index] || "A";
                 if(chosenLetter === "A") countA++;
                 else if(chosenLetter === "B") countB++;
                 else countC++;
 
-                // Seçilen şıkkın tam metnini bul
                 const chosenOptionText = qItem.opts.find(o => o.startsWith(chosenLetter + ")")) || qItem.opts[0];
-                // O şıkka özel rehberlik/analiz yorumunu al
                 const specificComment = qItem.analysisMap[chosenLetter] || "Değerlendirme tamamlandı.";
 
-                // Renk kodlaması
                 let badgeClass = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
                 let statusLabel = "İdeal Uyum (A)";
                 if(chosenLetter === "B") {
@@ -573,46 +596,43 @@
                 }
 
                 return `
-                    <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700/80 space-y-1.5">
+                    <div class="bg-slate-950/90 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
                         <div class="flex items-start justify-between gap-2">
                             <p class="font-bold text-slate-100 text-xs">${qItem.q}</p>
                             <span class="text-[10px] px-2 py-0.5 rounded border whitespace-nowrap font-semibold ${badgeClass}">${statusLabel}</span>
                         </div>
-                        <p class="text-[11px] text-indigo-300 font-medium">📌 Öğrencinin İşaretlediği: <span class="text-white">${chosenOptionText}</span></p>
-                        <p class="text-[11px] text-slate-300 bg-slate-800/80 p-2 rounded border-l-2 ${chosenLetter === 'A' ? 'border-emerald-400' : (chosenLetter === 'B' ? 'border-amber-400' : 'border-rose-400')}">
-                            💡 <strong>Koçluk & Rehberlik Analizi:</strong> ${specificComment}
+                        <p class="text-[11px] text-indigo-300 font-medium">📌 Soru ${qItem.id} Cevabı: <span class="text-white">${chosenOptionText}</span></p>
+                        <p class="text-[11px] text-slate-300 bg-slate-900 p-2.5 rounded border-l-2 ${chosenLetter === 'A' ? 'border-emerald-400' : (chosenLetter === 'B' ? 'border-amber-400' : 'border-rose-400')}">
+                            💡 <strong>Rehberlik & Koçluk Analizi:</strong> ${specificComment}
                         </p>
                     </div>
                 `;
             }).join('');
 
-            // Genel Karakter & Uyum Özeti Oluştur
             let overallConclusion = "";
             if(countA >= 15) {
-                overallConclusion = `${std.name}, 20 soruluk envanterin ${countA} tanesinde en ideal profili (A) sergilemiştir. Yurt yaşamına adaptasyonu, zaman yönetimi ve hedef bilinci çok yüksek seviyededir. Mevcut disiplini korunarak akademik derece hedeflerine odaklanılmalıdır.`;
+                overallConclusion = `${std.name}, 20 soruluk envanterin ${countA} tanesinde en ideal profili (A) sergilemiştir. Yurt yaşamına adaptasyonu, zaman yönetimi ve hedef bilinci çok yüksek seviyededir.`;
             } else if(countC >= 5) {
-                overallConclusion = `${std.name} için yapılan analizde ${countC} farklı alanda acil destek gerektiren (C) yanıtlar tespit edilmiştir. Özellikle sınav kaygısı, yurt uyumu veya çalışma rutini başlıklarında birebir rehberlik görüşmesi planlanmalıdır.`;
+                overallConclusion = `${std.name} için yapılan analizde ${countC} farklı alanda öncelikli destek gerektiren (C) yanıtlar tespit edilmiştir. Özellikle sınav kaygısı, yurt uyumu veya çalışma rutini başlıklarında birebir rehberlik görüşmesi planlanmalıdır.`;
             } else {
-                overallConclusion = `${std.name}, genel olarak dengeli bir profil çizmekle birlikte (${countA} İdeal, ${countB} Gelişime Açık, ${countC} Destek Gerekli), özellikle B ve C işaretlenen konularda haftalık koçluk takibiyle performansı hızla yukarı çekilebilir.`;
+                overallConclusion = `${std.name}, dengeli bir profil sergilemektedir (${countA} İdeal, ${countB} Gelişime Açık, ${countC} Destek Gerekli). B ve C işaretlenen sorular özelinde koçluk takibi sağlanmalıdır.`;
             }
 
             reportBox.innerHTML = `
-                <div class="bg-indigo-950/50 p-4 rounded-xl border border-indigo-500/40 space-y-2">
+                <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-500/40 space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-indigo-300 text-xs uppercase tracking-wider">✨ ${std.name} - Genel Karakter & Uyum Özeti</span>
-                        <span class="text-[10px] text-slate-400">${std.date}</span>
                     </div>
                     <p class="text-slate-200 text-xs leading-relaxed">${overallConclusion}</p>
-                    <div class="flex gap-3 pt-1 text-[11px] font-semibold">
-                        <span class="text-emerald-400">● İdeal (A): ${countA} Soru</span>
-                        <span class="text-amber-400">● Gelişime Açık (B): ${countB} Soru</span>
-                        <span class="text-rose-400">● Destek Gerekli (C): ${countC} Soru</span>
+                    <div class="flex gap-4 pt-1 text-[11px] font-semibold">
+                        <span class="text-emerald-400">● İdeal (A): ${countA}</span>
+                        <span class="text-amber-400">● Gelişime Açık (B): ${countB}</span>
+                        <span class="text-rose-400">● Destek Gerekli (C): ${countC}</span>
                     </div>
                 </div>
-
                 <div class="space-y-2 mt-3">
-                    <p class="font-bold text-slate-300 text-xs uppercase tracking-wider">20 Sorunun Tamamı İçin Kişiselleştirilmiş Analiz Dökümü:</p>
-                    <div class="max-h-[420px] overflow-y-auto space-y-2.5 pr-1">
+                    <p class="font-bold text-slate-300 text-xs uppercase tracking-wider">20 Sorunun Tamamı İçin Soru Bazlı Döküm:</p>
+                    <div class="max-h-[440px] overflow-y-auto space-y-2.5 pr-1">
                         ${detailedQuestionsHTML}
                     </div>
                 </div>
@@ -628,74 +648,171 @@
                 });
                 video.srcObject = cameraStream;
             } catch (err) {
-                console.warn("Kamera hatası:", err);
+                console.warn("Kamera erişim uyarısı:", err);
             }
         }
 
-        // Form Tarama ve Öğrenciye Özel 20 Cevap Üretip Buluta Kaydetme
+        // Kesin Optik Form Doğrulama ve 20 Soru Okuma Motoru (Optik Harici Hiçbir Şeyi Kabul Etmez)
+        function verifyAndReadOpticForm(canvas, ctx) {
+            const w = canvas.width;
+            const h = canvas.height;
+            const imgData = ctx.getImageData(0, 0, w, h).data;
+
+            // 1. Aşama: Beyaz Kağıt Zemini ve Siyah Baskı Kontrast Kontrolü
+            let brightPixels = 0;
+            let darkPixels = 0;
+            let colorSaturationSum = 0;
+            const totalSampled = (w * h) / 16;
+
+            for (let i = 0; i < imgData.length; i += 64) {
+                const r = imgData[i], g = imgData[i+1], b = imgData[i+2];
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                const maxC = Math.max(r, g, b);
+                const minC = Math.min(r, g, b);
+                colorSaturationSum += (maxC - minC);
+
+                if (lum > 150) brightPixels++;
+                else if (lum < 85) darkPixels++;
+            }
+
+            const brightRatio = brightPixels / totalSampled;
+            const darkRatio = darkPixels / totalSampled;
+            const avgSaturation = colorSaturationSum / totalSampled;
+
+            // Renkli ortamlar (duvar, masa, el, kıyafet) yüksek doygunluğa sahiptir veya beyaz kağıt oranı düşüktür
+            if (avgSaturation > 42 || brightRatio < 0.32 || darkRatio < 0.025 || darkRatio > 0.55) {
+                return {
+                    valid: false,
+                    reason: "Kamerada geçerli bir optik cevap kağıdı tespit edilemedi. Sistem optik form harici nesneleri kabul etmez."
+                };
+            }
+
+            // 2. Aşama: 4 Köşe Hizalama Kareleri (Fiducial Markers) Varlık Testi
+            const cornerRegions = [
+                { x: Math.floor(w * 0.12), y: Math.floor(h * 0.10) },
+                { x: Math.floor(w * 0.88), y: Math.floor(h * 0.10) },
+                { x: Math.floor(w * 0.12), y: Math.floor(h * 0.90) },
+                { x: Math.floor(w * 0.88), y: Math.floor(h * 0.90) }
+            ];
+
+            let darkCornerHits = 0;
+            cornerRegions.forEach(pt => {
+                let minLum = 255;
+                for (let dy = -18; dy <= 18; dy += 2) {
+                    for (let dx = -18; dx <= 18; dx += 2) {
+                        const px = Math.min(w - 1, Math.max(0, pt.x + dx));
+                        const py = Math.min(h - 1, Math.max(0, pt.y + dy));
+                        const idx = (py * w + px) * 4;
+                        const lum = 0.299 * imgData[idx] + 0.587 * imgData[idx+1] + 0.114 * imgData[idx+2];
+                        if (lum < minLum) minLum = lum;
+                    }
+                }
+                if (minLum < 105) darkCornerHits++;
+            });
+
+            if (darkCornerHits < 3) {
+                return {
+                    valid: false,
+                    reason: "Optik formun köşe hizalama kareleri çerçeveye tam oturmadı. Lütfen formu dikey yeşil çizgilere hizalayın."
+                };
+            }
+
+            // 3. Aşama: 20 Sorunun Baloncuk Okuması (1-10 Sol Sütun, 11-20 Sağ Sütun)
+            const detectedAnswers = [];
+            const startY = Math.floor(h * 0.45);
+            const endY = Math.floor(h * 0.88);
+            const rowHeight = Math.floor((endY - startY) / 10);
+
+            for (let q = 1; q <= 20; q++) {
+                const isRightCol = q > 10;
+                const rowIndex = isRightCol ? (q - 11) : (q - 1);
+                const y = startY + rowIndex * rowHeight + Math.floor(rowHeight / 2);
+
+                const baseX = isRightCol ? Math.floor(w * 0.56) : Math.floor(w * 0.22);
+                const stepX = Math.floor(w * 0.065);
+
+                const darknessScores = ["A", "B", "C"].map((opt, idx) => {
+                    const cx = baseX + idx * stepX;
+                    let darkSum = 0;
+                    let count = 0;
+                    for (let dy = -4; dy <= 4; dy++) {
+                        for (let dx = -4; dx <= 4; dx++) {
+                            const px = Math.min(w - 1, Math.max(0, cx + dx));
+                            const py = Math.min(h - 1, Math.max(0, y + dy));
+                            const pIdx = (py * w + px) * 4;
+                            const lum = 0.299 * imgData[pIdx] + 0.587 * imgData[pIdx+1] + 0.114 * imgData[pIdx+2];
+                            darkSum += (255 - lum);
+                            count++;
+                        }
+                    }
+                    return { opt, score: darkSum / count };
+                });
+
+                darknessScores.sort((a, b) => b.score - a.score);
+                detectedAnswers.push(darknessScores[0].opt);
+            }
+
+            return { valid: true, answers: detectedAnswers };
+        }
+
+        function showFeedback(msg, isError) {
+            const box = document.getElementById('scan-feedback');
+            box.textContent = msg;
+            box.className = `text-xs p-2.5 rounded-lg border ${isError ? 'bg-rose-950/60 border-rose-500/50 text-rose-200' : 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'}`;
+            box.classList.remove('hidden');
+        }
+
         async function processAndSaveScan() {
             const nameInput = document.getElementById('scan-name').value.trim();
             if(!nameInput) {
-                alert("Lütfen taranan öğrencinin Adını ve Soyadını giriniz!");
+                showFeedback("⚠️ Lütfen optik form üzerindeki Öğrenci Adı Soyadı bilgisini giriniz.", true);
                 return;
             }
             const noInput = document.getElementById('scan-no').value.trim() || String(Math.floor(1000 + Math.random() * 9000));
             
             const video = document.getElementById('video');
+            if(!video.videoWidth) {
+                showFeedback("⚠️ Kamera görüntüsü hazır değil. Lütfen kamera iznini kontrol edin.", true);
+                return;
+            }
+
             const canvas = document.getElementById('capture-canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imgUrl = canvas.toDataURL('image/jpeg', 0.75);
 
-            // Optik okumadan gelen 20 soruluk gerçekçi şık dağılımı (A, B, C)
-            const optionsPool = ["A", "A", "B", "A", "B", "C"];
-            const scannedAnswers = Array(20).fill(0).map(() => optionsPool[Math.floor(Math.random() * optionsPool.length)]);
+            // Optik Form Doğrulama
+            const scanResult = verifyAndReadOpticForm(canvas, ctx);
+            if (!scanResult.valid) {
+                showFeedback("⛔ REDDEDİLDİ: " + scanResult.reason, true);
+                return;
+            }
+
+            const imgUrl = canvas.toDataURL('image/jpeg', 0.75);
 
             const newStd = {
                 id: "std_" + Date.now(),
                 name: nameInput,
                 no: noInput,
                 date: new Date().toLocaleDateString('tr-TR') + " - " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                answers: scannedAnswers,
+                answers: scanResult.answers,
                 img: imgUrl
             };
 
             studentsList.unshift(newStd);
             renderStudentList();
-            selectStudent(newStd.id);
 
             document.getElementById('scan-name').value = "";
             document.getElementById('scan-no').value = "";
+            showFeedback(`✅ ${nameInput} isimli öğrencinin optik formu doğrulandı ve arşive eklendi! Yorumu görmek için sol listeden ismine tıklayın.`, false);
 
             await uploadToCloud(newStd);
-            alert(`${nameInput} isimli öğrencinin optik formu okundu, 20 soruluk özel analizi çıkarıldı ve buluta kaydedildi!`);
         }
 
-        // Farklı Profillerde Örnek Öğrenci Ekleme
-        function addNewSampleStudent() {
-            const sampleProfiles = [
-                { name: "Zeynep Demir", no: "1205", answers: ["A","A","B","A","A","A","B","B","A","A","A","B","A","A","A","B","A","A","A","A"] },
-                { name: "Mehmet Kaya", no: "1342", answers: ["C","B","C","B","C","B","C","C","B","C","B","C","B","B","C","C","B","B","C","B"] },
-                { name: "Elif Çelik", no: "1580", answers: ["A","B","A","A","B","A","B","A","A","B","A","A","A","A","B","A","A","A","B","A"] }
-            ];
-            const pick = sampleProfiles[Math.floor(Math.random() * sampleProfiles.length)];
-            const newStd = {
-                id: "std_" + Date.now(),
-                name: pick.name,
-                no: pick.no,
-                date: new Date().toLocaleDateString('tr-TR') + " - " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                answers: pick.answers,
-                img: ""
-            };
-            studentsList.unshift(newStd);
-            renderStudentList();
-            selectStudent(newStd.id);
-        }
-
-        // JSONBin Bulut Kayıt ve Çekme İşlemleri
         async function uploadToCloud(studentObj) {
+            const ind = document.getElementById('cloud-indicator');
+            ind.textContent = "Buluta Kaydediliyor... ⏳";
             try {
                 const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
                     headers: { 'X-Master-Key': MASTER_KEY }
@@ -717,30 +834,69 @@
                     },
                     body: JSON.stringify({ kayitlar: records })
                 });
+                ind.textContent = "Bulut Senkronize Edildi ☁️";
             } catch(e) {
-                console.warn("Bulut kayıt hatası:", e);
+                ind.textContent = "Bulut Bağlantı Hatası ⚠️";
             }
         }
 
-        async function fetchCloudData() {
+        async function fetchCloudData(showAlert = false) {
+            const ind = document.getElementById('cloud-indicator');
+            ind.textContent = "Veriler Çekiliyor... ⏳";
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
                     headers: { 'X-Master-Key': MASTER_KEY }
                 });
                 if(res.ok) {
                     const json = await res.json();
-                    if(json.record && Array.isArray(json.record.kayitlar) && json.record.kayitlar.length > 0) {
+                    if(json.record && Array.isArray(json.record.kayitlar)) {
                         studentsList = json.record.kayitlar;
                         renderStudentList();
-                        selectStudent(studentsList[0].id);
+                        if(showAlert) alert(`Buluttan ${studentsList.length} öğrenci kaydı çekildi. Yorumunu açmak için sol listeden isme tıklayın.`);
                     }
                 }
+                ind.textContent = "Bulut Aktif ☁️";
             } catch(e) {
-                console.warn("Bulut veri çekme hatası:", e);
+                ind.textContent = "Çevrimdışı Mod ⚠️";
             }
         }
 
-        // PDF İndirme Fonksiyonları
+        function exportStudentReportPDF() {
+            const std = studentsList.find(s => s.id === activeStudentId);
+            if(!std) return;
+
+            const ansList = std.answers || Array(20).fill("A");
+            const rowsHTML = questionsData.map((qItem, idx) => {
+                const chosen = ansList[idx] || "A";
+                const optText = qItem.opts.find(o => o.startsWith(chosen + ")")) || "";
+                const comment = qItem.analysisMap[chosen] || "";
+                return `
+                    <div style="border-bottom: 1px solid #ddd; padding: 6px 0; page-break-inside: avoid;">
+                        <p style="font-weight: bold; font-size: 11px; margin: 0;">${qItem.q}</p>
+                        <p style="font-size: 10px; color: #1e3a8a; margin: 2px 0;"><strong>İşaretlenen Yanıt:</strong> ${optText}</p>
+                        <p style="font-size: 10px; color: #333; margin: 2px 0;"><strong>Koçluk Değerlendirmesi:</strong> ${comment}</p>
+                    </div>
+                `;
+            }).join('');
+
+            const tpl = document.getElementById('pdf-student-report-template');
+            tpl.innerHTML = `
+                <div style="border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
+                    <h2 style="font-size: 18px; font-weight: bold; margin: 0;">DEMET EĞİTİM KURUMLARI - BİREYSEL SORU ANALİZ RAPORU</h2>
+                    <p style="font-size: 11px; margin: 4px 0 0 0;"><strong>Öğrenci Adı Soyadı:</strong> ${std.name} | <strong>Öğrenci No:</strong> ${std.no} | <strong>Tarama Tarihi:</strong> ${std.date}</p>
+                </div>
+                <div>${rowsHTML}</div>
+                <div style="margin-top: 15px; text-align: right; font-size: 9px; color: #666;">Hazırlayan: Seyit Talha Sarı</div>
+            `;
+
+            html2pdf().set({
+                margin: 8,
+                filename: `${std.name.replace(/\s+/g, '_')}_Soru_Analiz_Raporu.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4' }
+            }).from(tpl).save();
+        }
+
         function generateQuestionsPDF() {
             const element = document.getElementById('pdf-questions-template');
             html2pdf().set({ margin: 8, filename: 'Demet_Egitim_Soru_Kitapcigi.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
@@ -748,7 +904,7 @@
 
         function generateOpticPDF() {
             const element = document.getElementById('pdf-optic-template');
-            html2pdf().set({ margin: 5, filename: 'Demet_Egitim_Ferah_Optik_Form_2li.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
+            html2pdf().set({ margin: 5, filename: 'Demet_Egitim_Optik_Form_2li.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
         }
     </script>
 </body>
